@@ -73,3 +73,32 @@ position으로 절대좌표로 이동하게 만들어주면 좀더 자연스럽�
 
 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.back), 0.1f);
 transform.position += (Vector3.back * Time.deltaTime * _speed);
+
+0630 
+
+프리팹, 프리팹 생성하는 리소스 매니저 만들기
+
+action, func, 리스너 패턴, 제네릭, 싱글톤, 프로퍼티 복습 필요!
+
+프리팹 
+
+에셋 폴더에 만든 게임 오브젝트를 넣어서 만듦
+프리팹에 오브젝트는 프리펩만 수정하면 다 일괄적으로 적용됨
+프리펩 수정 - 프리팹 두번 클릭해서 수정 or 오브젝트 우측 화살표로 수정
+프리팹에서 수정하면 일괄 수정이 되지만
+객체에세 값을 수정하면 수정된 부분이 진해지면서 값이오버라이드 됨
+
+nestde prefab - 프리팹 안에 다른 프리팹을 포함하는 프리팹, 프리펩을 중첩해서 사용, 프리팹 여러개를 묶고 묶은 덩어리로 프리팹을 만들 수 있음
+
+prefab varient - 프리팹 상속 
+만들어진 프리팹을 다시 에셋에 넣으면 새 프리펩 or 상속으로 나오고 상속한 프리팹으로 기존 프리팹 받아서 수정 가능 
+
+Resource Manager
+
+instantiate 함수 - 코드상으로 scene에 오브젝트 생성
+asset - resources - 코드 제외 리소스 넣는 폴더 형태로 resources 안에 폴더 만들어주자
+
+
+prefab = Resources.Load<GameObject>("Prefabs/Tank"); - resoures/Prefabs 폴더 안에 있는 Tank를 꺼내와서 로드함, 바로 생성은 안됨
+tank = Instantiate(prefab); - 로드한 프리팹을 생성!
+Destroy(tank, 3.0f); - 만든 탱크 삭제

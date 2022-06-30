@@ -60,13 +60,19 @@ public class PlayerController : MonoBehaviour
 
         //방향 벡터로  a와b 사이의 거리와 실제 방향을 알 수 있음
         #endregion
+        //기존 호출 있으면 빼주기
+        Managers.Input.keyaction -= Onkeyboard;
+        Managers.Input.keyaction += Onkeyboard;
 
     }
 
-    float _yAngle = 0.0f;
     void Update()   
     {
-        _yAngle += Time.deltaTime * _speed;
+        
+    }
+
+    void Onkeyboard()
+    {
         //절대 회전값
         //transform.eulerAngles = new Vector3(0.0f, _yAngle, 0.0f);
 
@@ -88,12 +94,12 @@ public class PlayerController : MonoBehaviour
             transform.position += (Vector3.forward * Time.deltaTime * _speed);
 
             //자연스럽게 돌아가기(slerp), 보고 있는 방향으로(lookrotation)
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.forward),0.1f);
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.forward), 0.1f);
         }
         if (Input.GetKey(KeyCode.A))
         {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.left),0.1f);
-           transform.position += (Vector3.left * Time.deltaTime * _speed);
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.left), 0.1f);
+            transform.position += (Vector3.left * Time.deltaTime * _speed);
         }
         if (Input.GetKey(KeyCode.S))
         {

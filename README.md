@@ -102,3 +102,97 @@ asset - resources - 코드 제외 리소스 넣는 폴더 형태로 resources �
 prefab = Resources.Load<GameObject>("Prefabs/Tank"); - resoures/Prefabs 폴더 안에 있는 Tank를 꺼내와서 로드함, 바로 생성은 안됨
 tank = Instantiate(prefab); - 로드한 프리팹을 생성!
 Destroy(tank, 3.0f); - 만든 탱크 삭제
+
+0705
+
+Collider
+
+rigidbody - 물리 적용
+mass - 질량
+iskinematic - 물리에 영향을 받지 않게 해줌
+
+충돌 처리할때 쓰는 함수 - oncollisionenter
+rigidbody가  있고 kinematic은 꺼진 상태고
+collider가 있고  istrigger가 꺼진 상태고
+부딫칠 오브젝트도 collider가 있고  istrigger가 꺼진 상태서
+충돌시 oncollisionenter 함수 실행!
+
+Raycast
+
+레이캐스팅 - 물체에서 레이저를 쏴서 레이저에 닿은 물체 정보를 불러오는 느낌
+Physics.Raycast(transform.position,Vector3.forward);   - 플레이어 위치로부터 앞으로 레이캐스트, 불값 리턴
+Debug.DrawRay(transform.position, Vector3.forward, Color.red); - 디버그로 레이를 눈에 보에게 해줌
+
+위에걸 그대로 하면 레이저가 한칸만 나가니 positon에 
+vector3.up으로 플레이어 중간에서 레이저가 나가게 맞춰줌
+
+디버그에서 레이캐스트에 닿은 물체를 보고 싶으면
+raycasthit hit; 형태로 hit을 선언하고 raycast 함수에 out hit으로 인자를 넣은 후
+디버그 부분에 hit,colider.gameobject.name 형태로 이름 넣어주기
+
+vector3.foward로 하면 월드 기준으로 앞으로만 나가니까
+Vector3 look = transform.TransformDirection(Vector3.forward);
+transformdirection으로 플레이어가 보는 방향에 맞게 레이캐스트 조정 가능!
+
+ 
+그냥 physics.raycast는 오브젝트 여러개에 닿아도 처음 것 하나만 인식하지만 phtsics.raycastall을 사용하면 여러개를 인식 가능
+RaycastHit[] hits; - 배열로 선언하고
+hits = Physics.RaycastAll(transform.position + Vector3.up, look, 10); - 닿는 모든 오브젝트를 리턴
+
+레이캐스트 활용
+레이캐스팅을 이용해서 플레이어가 벽에 가려질때 카메라 시점 문제를 해결 가능
+플레이어에서 카메라 위치로 레이캐스트를 하고
+중간에 걸리는 물체가 있으면 카메라를 그 물체 앞쪽으로 이동시켜서 해결, 이런식으로 다양하게 응용 가능하다
+
+
+좌표계
+
+로컬 - 특정 물체 기준
+월드 - 하나의 세계 기준 좌표
+local - world - vieport - screen 좌표계가 있음
+
+
+screen 좌표계 
+
+ Input.mousePosition - 마우스 위치를 좌표로 나타냄
+Camera.main.ScreenToViewportPoint(Input.mousePosition - 스크린 좌표계와 유사하지만 0~1 사이 비율로 나타냄
+
+ 
+camera.main - 메인 카메라 가져오기
+input.mouspopsition - 마우스가 있는 위치 가져오기
+if (Input.GetMouseButtonDown(0)) - 마우스 눌렷을때 작동
+
+ray를 선언하고 raycasthit hit으로 ray에 닿을 물체를 만들고 raycast로 ray에 닿은 물체에 관해서 작동하게 만들 수 있음
+강의서 특정 오브젝트나 위치를 마우스로 클릭시 반응하게 만들어주는 코드 작성
+
+LayerMask
+
+레이캐스팅 성능, 최적화, 레이어를 이용해서 필터? 해서 연산하기
+레이어 - 32비트 연산으로 이용, 메쉬 콜라이더가 켜진 상태에서 이용 가능
+레이어를 이용해서 해당 레이어에 해당하는 오브젝트만 레이캐스팅 가능
+int mask = (1<<8)로 8번째 비트 켜주고
+raycast 함수에 인자로 mask를 넣어주면 8번 레이어만 켜지게 할 수 있음
+int mask = (1 << 8) | ( 1 << 9); 
+형태로 마스크를 설정하면 8번,9번에 해당하는 마스크만 켜지게 ( 쉬프트 연산으로 8, 9에 해당하는 걸로 이동하고 or 연산으로 둘다 더해줌) 할수 있음
+그냥 int mask = 768로 할 수도 있지만 가독성의 문제 때문에 위에 버전을 사용하는걸로 하자
+레이캐스팅이 부하를 많이 주는 방법이기에 최적화 하는게 중요
+위에 비트연산을 이용한 방법 말고도 
+Layermask mask = LayerMask.GetMask("monster"); 형태로 레이어 이름을 받아서 쓰는 방법도 있음
+
+태그 - 오브젝트 구분할때 사용
+camera.main 형태로 오브젝틀를 가져올때 main도 태그의 일종
+gameobject findobjectwithtag에 이용, tag도 add 가능
+
+
+카메라
+
+탑뷰, 쿼터뷰 등 카메라 위치나 카메라 액션을 해보자
+카메라 - 타겟텍스쳐 옵션-  cctv같은 느낌으로 사용 가능한 기능
+카메라가 플레이어를 따라가게 만들어주려면?
+플레이어 회전값에 상관 없이 월드 기준으로 따라가게 하거나 방향벡터를 받아서 이동시켜주기 등등 방법으로 구현해보자
+
+플레이어의 벡터를 카메라 스크립트에 넘겨준후 처음 카메라에 위치에 플레이어의 벡터를 더해주는 방법,
+transform.lookat(플레이어 포지션)으로 로테이션을 강제로 넣어주는 방법이 있음
+위에 방법으로 카메라가 플레이어를 따라오는 코드에서 업데이트에 카메라 컨트롤러 좌표 부분을 넣으면 덜덜거리는 현상이 발생 
+이유는 플레이어컨트롤러도 업데이트에 있고 카메라 컨트롤러도 업데이트에 있어서 둘이 순서가 충돌? 해서 그럼
+해결을 위해 카메라를 플레이어컨트롤러보다 늦게 작동하게 만들기 위해서 카메라 컨트롤러 update를 lateupdate로 바꿔줌

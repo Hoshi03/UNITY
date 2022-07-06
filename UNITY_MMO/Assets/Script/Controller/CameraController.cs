@@ -23,9 +23,20 @@ public class CameraController : MonoBehaviour
     {
         if(mode == Define.CameraMode.QuarterView)
         {
-            //카메라의 포지션을 플레이어의 포지션 + 처음 카메라가 위치했던 방향인 _delta를 해줘서 카메라가 항상 플레이어를 따라다니게 만들어줌
-            transform.position = _player.transform.position + _delta;
-            transform.LookAt(_player.transform);
+            RaycastHit hit;
+            //레이캐스트 결과가 true면 중간에 벽이 하나 있는 것
+            if(Physics.Raycast(_player.transform.position, _delta, out hit, _delta.magnitude, LayerMask.GetMask("Wall"))){
+                //벽에 닿은 부분에서 플레이어의 좌표를 빼서 방향벡터 구해주고 0.8배로 앞으로 조금 당겨주기
+                float distance = (hit.point - _player.transform.position).magnitude * 0.8f;
+                //카메라의 위치를 _delta의 방향에 distance로 당겨온 만큼 이동시켜주기!
+                transform.position = _player.transform.position + _delta.normalized * distance;
+            }
+            else
+            {
+                //카메라의 포지션을 플레이어의 포지션 + 처음 카메라가 위치했던 방향인 _delta를 해줘서 카메라가 항상 플레이어를 따라다니게 만들어줌
+                transform.position = _player.transform.position + _delta;
+                transform.LookAt(_player.transform);
+            }
         }
     }
 }

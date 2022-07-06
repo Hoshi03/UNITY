@@ -45,6 +45,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     float _speed = 10.0f;
 
+    bool _moveToDest = false;
+    Vector3 _destpos;
     void Start()
     {
         #region
@@ -63,11 +65,36 @@ public class PlayerController : MonoBehaviour
         //기존 호출 있으면 빼주기
         Managers.Input.keyaction -= Onkeyboard;
         Managers.Input.keyaction += Onkeyboard;
+        Managers.Input.MouseAction -= OnmouseClicked;
+        Managers.Input.MouseAction += OnmouseClicked;
 
     }
 
     void Update()   
     {
+        if (_moveToDest)
+        {
+            //방향벡터 구해주기
+            Vector3 dir = _destpos - transform.position;
+            dir.y = 0.0f;
+
+            //목적지에 도달해서 크기가 거의 미묘해지면 멈춰주기
+            if (dir.magnitude < 0.00001f)
+                _moveToDest = false;
+            else
+            {
+                //clamp 함수를 이용해서 0~ dir 최대값 사이에 이동할 거리가 들어가게 만들어줌
+                float moveDistance = Mathf.Clamp(_speed * Time.deltaTime, 0, dir.magnitude);
+                //포지션을 dir 쪽으로 옮겨주기, 방향벡터의 크기도 1로 바꾸고 스피드와 델타타임을 곱해줘서 일정하게 만들어준다!
+                transform.position += dir.normalized * moveDistance;
+
+                //그냥 lookat으로 하면 동작이 너무 부자연스러워서 자연스럽게 quternion을 사용해서 자연스럽게 만들어주기
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 20 * Time.deltaTime);
+
+                //플레이어가 목적지를 바라보면서 이동하게 만들어주기
+                //transform.LookAt(_destpos);
+            }
+        }
         
     }
 
@@ -105,12 +132,35 @@ public class PlayerController : MonoBehaviour
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.back), 0.1f);
             transform.position += (Vector3.back * Time.deltaTime * _speed);
-
         }
         if (Input.GetKey(KeyCode.D))
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 0.1f);
             transform.position += (Vector3.right * Time.deltaTime * _speed);
+        }
+        _moveToDest = false;
+    }
+
+    void OnmouseClicked(Define.MouseEvent _event)
+    {
+        if (_event != Define.MouseEvent.Click)
+            return;
+
+        //밑에 코드 구현한 것을 한줄로 해주는 ray
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Debug.DrawRay(Camera.main.transform.position, ray.direction * 100.0f, Color.red, 1.0f);
+
+        //8번 레이어를 사용하기 위해 만들어둠
+        //int mask = (1 << 8) | ( 1 << 9);
+
+        //위에 것과 다른 버전의 레이어마스크 이용하기
+
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, 100.0f, LayerMask.GetMask("Wall")))
+        {
+            _destpos = hit.point;
+            _moveToDest = true;
+            //Debug.Log($"raycast camera : {hit.collider.gameObject.name}");
 
         }
     }

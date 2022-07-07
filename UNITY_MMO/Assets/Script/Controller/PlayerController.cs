@@ -45,8 +45,19 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     float _speed = 10.0f;
 
-    bool _moveToDest = false;
     Vector3 _destpos;
+
+    //자연스럽게 0~1로 가는 파라미터를 만들기 위한 값
+    float wait_run_ratio = 0.0f;
+
+    public enum PlayerState
+    {
+        Die,
+        Moving,
+        Idle
+    }
+
+    PlayerState _state = PlayerState.Idle;
     void Start()
     {
         #region
@@ -70,36 +81,75 @@ public class PlayerController : MonoBehaviour
 
     }
 
+    void UpdateMoving()
+    {
+        //방향벡터 구해주기
+        Vector3 dir = _destpos - transform.position;
+        dir.y = 0.0f;
+
+        //목적지에 도달해서 크기가 거의 미묘해지면 멈춰주기
+        if (dir.magnitude < 0.00001f)
+            _state = PlayerState.Idle;
+        else
+        {
+            //clamp 함수를 이용해서 0~ dir 최대값 사이에 이동할 거리가 들어가게 만들어줌
+            float moveDistance = Mathf.Clamp(_speed * Time.deltaTime, 0, dir.magnitude);
+            //포지션을 dir 쪽으로 옮겨주기, 방향벡터의 크기도 1로 바꾸고 스피드와 델타타임을 곱해줘서 일정하게 만들어준다!
+            transform.position += dir.normalized * moveDistance;
+
+            //그냥 lookat으로 하면 동작이 너무 부자연스러워서 자연스럽게 quternion을 사용해서 자연스럽게 만들어주기
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 20 * Time.deltaTime);
+
+            //플레이어가 목적지를 바라보면서 이동하게 만들어주기
+            //transform.LookAt(_destpos);
+        }
+
+        Animator anime = GetComponent<Animator>();
+        //animator 속성 가져오기
+        wait_run_ratio = Mathf.Lerp(wait_run_ratio, 1, 10.0f * Time.deltaTime);
+        //Animator anime = GetComponent<Animator>();
+        //만들어둔 블렌트 트리 파라미터 값 넣어주기
+        anime.SetFloat("wait_run_ratio", wait_run_ratio);
+        anime.Play("WAIT_RUN");
+    }
+
+    void UpdateIdle()
+    {
+        Animator anime = GetComponent<Animator>();
+        wait_run_ratio = Mathf.Lerp(wait_run_ratio, 0, 10.0f * Time.deltaTime);
+        //Animator anime = GetComponent<Animator>();
+        anime.SetFloat("wait_run_ratio", wait_run_ratio);
+        anime.Play("WAIT_RUN");
+    }
+
+    void UpdateDie()
+    {
+
+    }
+
     void Update()   
     {
-        if (_moveToDest)
+        switch (_state)
         {
-            //방향벡터 구해주기
-            Vector3 dir = _destpos - transform.position;
-            dir.y = 0.0f;
-
-            //목적지에 도달해서 크기가 거의 미묘해지면 멈춰주기
-            if (dir.magnitude < 0.00001f)
-                _moveToDest = false;
-            else
-            {
-                //clamp 함수를 이용해서 0~ dir 최대값 사이에 이동할 거리가 들어가게 만들어줌
-                float moveDistance = Mathf.Clamp(_speed * Time.deltaTime, 0, dir.magnitude);
-                //포지션을 dir 쪽으로 옮겨주기, 방향벡터의 크기도 1로 바꾸고 스피드와 델타타임을 곱해줘서 일정하게 만들어준다!
-                transform.position += dir.normalized * moveDistance;
-
-                //그냥 lookat으로 하면 동작이 너무 부자연스러워서 자연스럽게 quternion을 사용해서 자연스럽게 만들어주기
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 20 * Time.deltaTime);
-
-                //플레이어가 목적지를 바라보면서 이동하게 만들어주기
-                //transform.LookAt(_destpos);
-            }
+            case PlayerState.Moving:
+                UpdateMoving();
+                break;
+            case PlayerState.Die:
+                UpdateDie();
+                break;
+            case PlayerState.Idle:
+                UpdateIdle();
+                break;
         }
+            
         
     }
 
     void Onkeyboard()
     {
+        //플레이어가 죽어있는 상태면 바로 리턴
+        if (_state == PlayerState.Die)
+            return;
         //절대 회전값
         //transform.eulerAngles = new Vector3(0.0f, _yAngle, 0.0f);
 
@@ -138,13 +188,16 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 0.1f);
             transform.position += (Vector3.right * Time.deltaTime * _speed);
         }
-        _moveToDest = false;
+        _state = PlayerState.Idle;
     }
 
     void OnmouseClicked(Define.MouseEvent _event)
     {
-        if (_event != Define.MouseEvent.Click)
+        //플레이어가 죽어있는 상태면 바로 리턴
+        if (_state == PlayerState.Die)
             return;
+        //if (_event != Define.MouseEvent.Click)
+        //    return;
 
         //밑에 코드 구현한 것을 한줄로 해주는 ray
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -159,7 +212,7 @@ public class PlayerController : MonoBehaviour
         if (Physics.Raycast(ray, out hit, 100.0f, LayerMask.GetMask("Wall")))
         {
             _destpos = hit.point;
-            _moveToDest = true;
+            _state = PlayerState.Moving;
             //Debug.Log($"raycast camera : {hit.collider.gameObject.name}");
 
         }

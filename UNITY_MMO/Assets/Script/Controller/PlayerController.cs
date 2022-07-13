@@ -47,8 +47,6 @@ public class PlayerController : MonoBehaviour
 
     Vector3 _destpos;
 
-    //자연스럽게 0~1로 가는 파라미터를 만들기 위한 값
-    float wait_run_ratio = 0.0f;
 
     public enum PlayerState
     {
@@ -74,10 +72,13 @@ public class PlayerController : MonoBehaviour
         //방향 벡터로  a와b 사이의 거리와 실제 방향을 알 수 있음
         #endregion
         //기존 호출 있으면 빼주기
-        Managers.Input.keyaction -= Onkeyboard;
-        Managers.Input.keyaction += Onkeyboard;
+        //Managers.Input.keyaction -= Onkeyboard;
+        //Managers.Input.keyaction += Onkeyboard;
         Managers.Input.MouseAction -= OnmouseClicked;
         Managers.Input.MouseAction += OnmouseClicked;
+
+        //UI 불러오기 resourcemanager 이용
+        Managers.resource.Instanciate("UI/UI_BTN");
 
     }
 
@@ -106,20 +107,17 @@ public class PlayerController : MonoBehaviour
 
         Animator anime = GetComponent<Animator>();
         //animator 속성 가져오기
-        wait_run_ratio = Mathf.Lerp(wait_run_ratio, 1, 10.0f * Time.deltaTime);
-        //Animator anime = GetComponent<Animator>();
-        //만들어둔 블렌트 트리 파라미터 값 넣어주기
-        anime.SetFloat("wait_run_ratio", wait_run_ratio);
-        anime.Play("WAIT_RUN");
+        //만들어둔 float형 파라미터 Speed에 현재 스피드를 넘겨줌
+        anime.SetFloat("Speed", _speed);
+
     }
 
     void UpdateIdle()
     {
         Animator anime = GetComponent<Animator>();
-        wait_run_ratio = Mathf.Lerp(wait_run_ratio, 0, 10.0f * Time.deltaTime);
-        //Animator anime = GetComponent<Animator>();
-        anime.SetFloat("wait_run_ratio", wait_run_ratio);
-        anime.Play("WAIT_RUN");
+        //Speed 파라미터를 0으로 바꿔서 캐릭터를 멈추게 해줌
+        anime.SetFloat("Speed", 0);
+
     }
 
     void UpdateDie()
@@ -216,5 +214,10 @@ public class PlayerController : MonoBehaviour
             //Debug.Log($"raycast camera : {hit.collider.gameObject.name}");
 
         }
+    }
+     
+    void OnRunEvent()
+    {
+        Debug.Log("뚜벅 뚜벅~");
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class UI_Base : MonoBehaviour
@@ -59,5 +60,26 @@ public class UI_Base : MonoBehaviour
         return Get<Image>(index);
     }
 
+    public static void AddUIEvent(GameObject go, Action<PointerEventData> action, Define.UIEvent type = Define.UIEvent.Click)
+    {
+      
+        
+        //컴포넌트를 안넣어줬거나 아예 없으면 만들어서 넣어줌
+        UI_EventHandler evt = Util.GetorAddComponet<UI_EventHandler>(go);
 
+        switch (type)
+        {
+            case Define.UIEvent.Click:
+                evt.OnClickHandler -= action;
+                evt.OnClickHandler += action;
+                break;
+
+            case Define.UIEvent.Drag:
+                evt.OnDragHandler -= action;
+                evt.OnDragHandler += action;
+                break;
+
+
+        }
+    }
 }

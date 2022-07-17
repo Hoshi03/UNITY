@@ -6,6 +6,15 @@ public class Util
 {
     //기능성 함수들을 넣어놓는 스크립트
 
+    //컴포넌트를 넣거나 추출하는 함수 
+    public static T GetorAddComponet<T>(GameObject go) where T : UnityEngine.Component
+    {
+        T component = go.GetComponent<T>();
+        if (component == null)
+            component = go.AddComponent<T>();
+        return component;
+    }
+
     //게임오브젝트는 컴포넌트가 아니기에 따로 받아서 트랜스폼을 리턴하는 findchild로 해주고 transform의 게임오브젝트를 리턴해줌
     public static GameObject Findchild(GameObject go, string name = null, bool recursive = false) 
     {

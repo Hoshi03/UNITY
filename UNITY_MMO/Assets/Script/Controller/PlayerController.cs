@@ -78,8 +78,10 @@ public class PlayerController : MonoBehaviour
         Managers.Input.MouseAction += OnmouseClicked;
 
         //UI 불러오기 resourcemanager 이용
-        Managers.resource.Instanciate("UI/UI_BTN");
+        //Managers.resource.Instanciate("UI/UI_BTN");
 
+        //Managers.UI.ShowPopupUI<UI_Button>("UI_Button");
+        //Managers.UI.ClosePopupUI(); 
     }
 
     void UpdateMoving()

@@ -8,12 +8,15 @@ public class Managers : MonoBehaviour
     static Managers s_instance;
 
     //유일한 매니저 가져오기
-    static Managers instance { get { Init();  return s_instance; } }
+    static Managers instance { get { Init(); return s_instance; } }
 
     //inputmanager 추가
-    InputManager input = new InputManager();
+    InputManager _input = new InputManager();
     ResourceManager _resource = new ResourceManager();
-    public static InputManager Input { get { return instance.input ; } }
+    UIManager _ui = new UIManager();
+
+    public static UIManager UI { get { return instance._ui; } }
+    public static InputManager Input { get { return instance._input ; } }
     public static ResourceManager resource { get { return instance._resource; } }
     void Start()
     {
@@ -23,7 +26,7 @@ public class Managers : MonoBehaviour
 
     void Update()
     {
-        input.OnUpdate();
+        _input.OnUpdate();
     }
 
     static void Init()
